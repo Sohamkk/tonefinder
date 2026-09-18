@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tonefinder — songs that match your photo</title>
+<meta name="description" content="Upload a photo. Tonefinder reads the light, colour and mood, then suggests songs that fit — with a Spotify player for each.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body data-razorpay-key="{{ razorpay_key_id }}">
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="mark"><span class="dot" id="brandDot"></span>Tonefinder</div>
+    <div class="spacer"></div>
+    <span class="plan-badge ui" id="planBadge" hidden></span>
+    <button class="chip ui" id="signInBtn">Sign in</button>
+    <div class="acct" id="acct" hidden>
+      <button class="chip ui" id="acctBtn"></button>
+      <div class="menu" id="acctMenu" hidden>
+        <button class="menu-item ui" id="upgradeLink">Plans and billing</button>
+        <button class="menu-item ui" id="historyLink">Recent photos</button>
+        <button class="menu-item ui" id="logoutBtn">Log out</button>
+      </div>
+    </div>
+    <button class="theme-btn ui" id="themeBtn" title="Switch light or dark">◐</button>
+  </div>
+</header>
+
+<main>
+<section class="wrap hero">
+  <h1>Your photo already knows what it sounds like.</h1>
+  <p class="lede">Drop in a picture. Tonefinder reads the light, the colour and what's going on in the frame, then hands you songs that fit — with a real Spotify player for each one.</p>
+</section>
+
+<section class="wrap stage">
+  <div class="frame">
+    <div class="drop" id="drop">
+      <svg class="grain" width="46" height="46" viewBox="0 0 46 46" fill="none" aria-hidden="true">
+        <rect x="3" y="9" width="40" height="30" rx="4" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="23" cy="24" r="8.5" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="23" cy="24" r="3" fill="currentColor" opacity=".35"/>
+        <path d="M16 9l2.5-4h9L30 9" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+      <h3>Drop a photo here</h3>
+      <p>or tap to choose one — JPEG, PNG or WebP</p>
+      <input class="file-input" type="file" id="file" accept="image/jpeg,image/png,image/webp">
+    </div>
+
+    <div class="shot" id="shot" hidden>
+      <img id="preview" alt="The photo you uploaded">
+      <div class="strip" id="strip" aria-hidden="true"></div>
+      <div class="shot-meta">
+        <span id="shotName">photo</span>
+        <button class="linkish ui" id="clearBtn">Use a different photo</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <h4 class="ui">Steer the picks</h4>
+      <div class="field">
+        <label for="count">How many songs</label>
+        <select id="count">
+          <option value="3">3 songs</option>
+          <option value="5" data-pro>5 songs — Pro</option>
+          <option value="10" data-pro>10 songs — Pro</option>
+        </select>
+      </div>
+      <div class="locked" id="proFields">
+        <div class="field">
+          <label for="lang">Language</label>
+          <select id="lang">
+            <option value="any">Anything</option>
+            <option value="Hindi and Indian film music">Hindi / Bollywood</option>
+            <option value="English">English</option>
+            <option value="Punjabi">Punjabi</option>
+            <option value="Marathi">Marathi</option>
+            <option value="Tamil or Telugu">Tamil / Telugu</option>
+            <option value="Korean">K-pop</option>
+            <option value="instrumental with no vocals">Instrumental only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="era">Era</label>
+          <select id="era">
+            <option value="any">Any era</option>
+            <option value="released in the last three years">Fresh releases</option>
+            <option value="from the 2010s">2010s</option>
+            <option value="from the 1990s or 2000s">90s / 2000s</option>
+            <option value="from the 1960s to 1980s">Retro (60s–80s)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="steer">Anything else? <span class="soft">(optional)</span></label>
+          <input type="text" id="steer" placeholder="e.g. for a wedding reel, keep it soft">
+        </div>
+        <div class="field">
+          <label for="energy">Energy floor <span class="soft" id="energyVal">— let the photo decide</span></label>
+          <input type="range" id="energy" min="0" max="100" step="5" value="0">
+        </div>
+        <div class="veil ui" id="veil" hidden>Filters, captions and longer lists are part of Pro</div>
+      </div>
+      <button class="cta ui" id="goBtn">Find songs</button>
+      <p class="quota ui" id="quota"></p>
+    </div>
+  </div>
+
+  <div id="results">
+    <div class="status">
+      <strong>Nothing read yet.</strong><br>
+      Pick a photo and Tonefinder will describe what it sees before it suggests anything, so you can tell whether the read was right.
+    </div>
+  </div>
+</section>
+
+<section class="plans" id="plans">
+  <div class="wrap">
+    <h2>What's free, what's paid</h2>
+    <p class="sub">Song titles and artists are always free to read and search. Pro pays for the heavier analysis, the extra control and the things that save you time when you post every day.</p>
+    <div class="grid3">
+      <div class="plan" data-plan="free">
+        <h3>Free</h3>
+        <div class="price">₹0</div>
+        <ul>
+          <li>3 songs per photo</li>
+          <li>5 photos a day</li>
+          <li>Scene and mood read-out</li>
+          <li>Spotify player and search links</li>
+          <li>Colour palette pulled from your shot</li>
+        </ul>
+        <button class="cta ghost ui" data-buy="free">Stay on Free</button>
+      </div>
+      <div class="plan feature" data-plan="pro">
+        <h3>Pro</h3>
+        <div class="price">₹149 <small>/ month</small></div>
+        <ul>
+          <li>Up to 10 songs, unlimited photos</li>
+          <li>Language, era and energy filters</li>
+          <li>Caption and hashtag writer</li>
+          <li>Saved history of every read</li>
+          <li>Download the list as a file</li>
+        </ul>
+        <button class="cta ui" data-buy="pro">Get Pro</button>
+      </div>
+      <div class="plan" data-plan="studio">
+        <h3>Studio</h3>
+        <div class="price">₹999 <small>/ month</small></div>
+        <ul>
+          <li>Everything in Pro, for a team</li>
+          <li>Brand mood presets</li>
+          <li>Bulk upload, results as CSV</li>
+          <li>API access for your own tools</li>
+          <li>Priority analysis queue</li>
+        </ul>
+        <button class="cta ghost ui" data-buy="studio">Get Studio</button>
+      </div>
+    </div>
+    <p class="fineprint" id="payNote"></p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Tonefinder suggests song titles and artists and links out to Spotify. It never hosts, stores or plays audio of its own — playback happens inside Spotify's own player, and lyrics are never reproduced.</p>
+    <p>Your photo is sent once for analysis and is not stored on the server.</p>
+  </div>
+</footer>
+
+<!-- auth -->
+<div class="modal" id="authModal" hidden>
+  <div class="sheet">
+    <button class="x ui" id="closeAuth" aria-label="Close">×</button>
+    <h2 id="authTitle">Sign in</h2>
+    <p class="soft" id="authSub">Accounts keep your plan and your recent reads.</p>
+    <div class="field" id="nameField" hidden>
+      <label for="authName">Name</label>
+      <input type="text" id="authName" autocomplete="name">
+    </div>
+    <div class="field">
+      <label for="authEmail">Email</label>
+      <input type="text" id="authEmail" autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="authPass">Password</label>
+      <input type="password" id="authPass" autocomplete="current-password">
+    </div>
+    <p class="err" id="authErr" hidden></p>
+    <button class="cta ui" id="authSubmit">Sign in</button>
+    <p class="swap soft">
+      <span id="swapText">New here?</span>
+      <button class="linkish ui" id="swapBtn">Create an account</button>
+    </p>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
