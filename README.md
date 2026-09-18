@@ -1,50 +1,12 @@
 # Tonefinder
 
-Upload a photo, get songs that match it. Flask backend, Claude vision for the
-photo read, Spotify's Search API for real track IDs (so the embedded player
-plays the right song), Razorpay for paid plans, email + password accounts with
-login and logout.
+Upload a photo, get songs that match it. Flask backend, accounts with login and
+logout that survive restarts, Spotify's Search API for correct embedded players,
+Razorpay for paid plans — and photo analysis that costs nothing and has no limit.
 
-## What's actually real right now
+---
 
-- ✅ **Accounts** — register, log in, log out. Passwords hashed with Werkzeug,
-  sessions in a signed cookie, plans stored per user in SQLite.
-- ✅ **Photo analysis** — the browser resizes your photo to 1280px, the server
-  sends it to the Anthropic API, and Claude returns the scene, time of day,
-  palette, mood tags, energy and the song picks as JSON.
-- ✅ **Correct Spotify embeds** — every suggested song is looked up through
-  Spotify's Search API server-side, so the player gets a real track ID instead
-  of a guess. Songs with no match fall back to a search link.
-- ✅ **Plan limits enforced on the server** — the free plan is capped at 3 songs
-  and 5 photos a day in `app.py`, not in JavaScript, so it can't be bypassed
-  from the console.
-- ✅ **Razorpay checkout** — `/api/subscribe` creates a real order server-side,
-  the frontend opens Razorpay's checkout, and `/api/verify-payment` checks the
-  HMAC signature with your secret before the plan changes. The client is never
-  trusted to say "payment succeeded".
-- ✅ **Colour palette** — pulled out of your photo in the browser and used as
-  the site's accent colour.
-
-If a key is missing, the API says which one. Nothing fails silently.
-
-## Keys you need
-
-Your Razorpay test keys are already in `.env` — carried over from FitPulse.
-Two more are needed before the app can do anything:
-
-| Key | Where to get it | Needed for |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | https://console.anthropic.com → API keys | reading the photo |
-| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | https://developer.spotify.com/dashboard → Create app | correct embedded players |
-| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | already set | paid plans |
-
-The Spotify app needs no redirect URI and no user login — Tonefinder uses the
-client-credentials flow, which only reads public catalogue data.
-
-Without the Spotify keys everything still works; you just get search links
-instead of inline players.
-
-## Run it locally
+## 1. Run it
 
 ```bash
 python -m venv venv
@@ -53,72 +15,187 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open **http://127.0.0.1:5000**, create an account, drop in a photo.
+Open **http://127.0.0.1:5000**, create an account, drop in a photo, press
+Find songs. It works with **zero API keys**. Add keys later to make it better.
 
-Check what's configured at any time: **http://127.0.0.1:5000/api/health/config**
-(it reports which keys are set, never their values).
+Two diagnostic pages tell you the truth about your setup at any moment:
 
-## Testing payments
+- `/api/health/config` — which readers are live, which database is in use,
+  whether it's a temporary one, how many accounts exist
+- `/api/health/razorpay` — creates and abandons a ₹1 order to prove your keys
+  work, and explains the failure if they don't
 
-Use Razorpay test keys (`rzp_test_…`, which is what's in `.env`) with their
-published test card and UPI numbers:
+---
+
+## 2. The analysis no longer needs your Anthropic balance
+
+`analyzers.py` has four readers. The app tries them in the order set by
+`ANALYZER_ORDER` and uses the first that answers. A reader with no key is
+skipped silently, and a reader that errors (including "credit balance is too
+low") falls through to the next one.
+
+| Reader | Cost | Limit | Reads the actual content? |
+|---|---|---|---|
+| `local` | free | none | **No** — colour, light, contrast and detail only |
+| `gemini` | free tier | daily quota | Yes |
+| `openrouter` | free models | rate-limited | Yes |
+| `anthropic` | paid | your balance | Yes, best quality |
+
+**`local` is the one that makes the app free and unlimited.** It opens the
+image with Pillow, measures brightness, warmth, saturation, contrast, hue and
+edge detail, works out time of day / palette / energy / mood from those
+numbers, scores ten mood buckets, and picks from the curated library in
+`data/songs.json`. No key, no network, no cost, no cap. Be clear-eyed about
+what it can't do: it sees a warm, busy, saturated frame — it cannot tell a
+wedding from a street market. The picks are mood-accurate, not content-aware.
+
+**Best free setup:** spend two minutes getting a Google AI Studio key at
+https://aistudio.google.com/apikey and put it in `.env` as `GOOGLE_API_KEY`.
+That gives real scene understanding on a free daily quota, and the moment the
+quota runs out the offline reader takes over instead of the app breaking. This
+is what `ANALYZER_ORDER=gemini,openrouter,anthropic,local` does by default.
+
+Keep `local` last in the order. It is the floor that stops the app ever
+failing.
+
+Your Anthropic key is still supported and still last-but-one in the chain. It
+simply isn't needed any more, and an empty balance no longer stops anything.
+
+---
+
+## 3. Accounts now persist
+
+Two things were going wrong before, and both are fixed.
+
+**The database file.** It now lives next to `app.py` as `tonefinder.db`, in WAL
+mode. The app probes whether that directory is writable at startup; only on a
+read-only host does it fall back to `/tmp`, and when it does,
+`/api/health/config` returns a `warning` field saying so in plain words.
+Sessions last 90 days, so returning to the site keeps you signed in.
+
+**Serverless hosts wipe `/tmp`.** If you deploy to Vercel, set `DATABASE_URL`
+to a Postgres connection string (Neon and Supabase both have free tiers) and
+the app uses Postgres instead — `psycopg2-binary` is already in
+`requirements.txt`. Everything else is identical; the SQL is translated at the
+edge in `q()`. On Render or Railway with a normal disk, SQLite is fine as-is
+and you can leave `DATABASE_URL` blank.
+
+Whichever you pick, `/api/health/config` reports `database`,
+`database_file`, `database_is_temporary` and a live account count, so you can
+confirm signups are landing somewhere real.
+
+---
+
+## 4. Fixing "Razorpay wouldn't create the order: Authentication failed"
+
+This one I can't fix from code, and I want to be straight with you about why.
+That error is Razorpay saying the credentials themselves are rejected. Your key
+id and secret are both structurally correct — right length, right `rzp_test_`
+prefix, no stray quotes or spaces (the app now strips those anyway). So the
+pair itself is the problem, and there are only three causes:
+
+1. **The secret belongs to an older key.** Regenerating a key in the Razorpay
+   dashboard silently invalidates the previous secret. If the key id and secret
+   were copied at different times, they will never work together.
+2. **Mode mismatch** — a `rzp_test_` id with a live secret, or the reverse.
+3. **The account's test keys were reset** after the FitPulse `.env` was written.
+
+**The fix, once:** Razorpay Dashboard → Account & Settings → API Keys →
+Regenerate Test Key. Copy **both** values in that same moment into `.env`.
+Restart the server. Open `/api/health/razorpay` — it will either say the keys
+work, or print Razorpay's exact reason.
+
+The app now handles this properly rather than dumping a raw error: it names the
+specific blocker (package missing vs key missing vs key rejected) and, on an
+authentication failure, prints the regenerate-both-keys instruction into the
+response so you never have to guess again.
+
+Test payments with Razorpay's published test cards:
 https://razorpay.com/docs/payments/payments/test-card-upi-details/ — no real
-money moves. Switch to `rzp_live_…` only once Razorpay approves the account.
+money moves on `rzp_test_` keys.
 
-## Deploying
+---
 
-**Render / Railway / Fly.io** are the easy path for Flask: push this folder to
-GitHub, connect the repo, set every line of `.env` as an environment variable
-in the dashboard, done. Start command: `gunicorn app:app` (add
-`gunicorn==22.0.0` to requirements) or `python app.py`.
+## 5. Spotify — the embedded player
 
-**Vercel** works too — `vercel.json` is included. One catch: Vercel's filesystem
-is read-only apart from `/tmp`, so `app.py` puts the SQLite file there, and
-**/tmp is wiped between cold starts — accounts will disappear.** For anything
-real on Vercel, swap SQLite for Vercel Postgres or Supabase. On Render or
-Railway with a persistent disk, the SQLite file survives and you can ship as-is.
+Without Spotify keys you get search links. With them you get a real inline
+player on every track, because the server looks each suggestion up through
+Spotify's Search API and uses the returned track ID instead of guessing.
 
-Set the same env vars in the dashboard either way. Never commit `.env` —
-`.gitignore` already excludes it.
+https://developer.spotify.com/dashboard → Create app → copy the Client ID and
+Client Secret into `.env`. No redirect URI needed, no user login — Tonefinder
+uses the client-credentials flow, which only reads public catalogue data. Free,
+and the quota is far beyond anything a small app will hit.
 
-## Project structure
+---
+
+## 6. Plans
+
+Enforced server-side in `app.py`, not in JavaScript, so nobody unlocks Pro from
+the browser console.
+
+| | Free | Pro ₹149/mo | Studio ₹999/mo |
+|---|---|---|---|
+| Songs per photo | 3 | 10 | 10 |
+| Photos per day | 5 | unlimited | unlimited |
+| Language / era / energy filters | — | ✅ | ✅ |
+| Caption and hashtag writer | — | ✅ | ✅ |
+| Saved history | ✅ | ✅ | ✅ |
+| Download the list | — | ✅ | ✅ |
+
+Change any of it in the `PLANS` dict at the top of `app.py`. Amounts are in
+paise.
+
+---
+
+## 7. Deploying
+
+**Render or Railway** (easiest): push to GitHub, connect the repo, start
+command `gunicorn app:app`, and paste every line of `.env` into the dashboard's
+environment variables. Attach a persistent disk and SQLite keeps working.
+
+**Vercel**: `vercel.json` is included, but you **must** set `DATABASE_URL` to a
+Postgres URL first or every signup vanishes on the next cold start.
+
+Set `FORCE_HTTPS_COOKIE=1` in production so the session cookie is HTTPS-only.
+Never commit `.env` — `.gitignore` already excludes it.
+
+---
+
+## 8. Files
 
 ```
 tonefinder/
-  app.py                 # Flask backend — auth, analysis, Spotify, Razorpay
-  templates/index.html   # single page
-  static/css/style.css   # photo-lab design system
-  static/js/app.js       # upload, colour extraction, checkout
+  app.py                 # routes, accounts, plans, Spotify, Razorpay
+  analyzers.py           # the four photo readers and the fallback chain
+  data/songs.json        # curated library the offline reader picks from
+  templates/index.html
+  static/css/style.css
+  static/js/app.js
   requirements.txt
   .env                   # your real keys (gitignored)
   .env.example
   vercel.json
 ```
 
-## API
+## 9. API
 
 | Route | What it does |
 |---|---|
-| `POST /api/auth/register` | create account, starts a session |
-| `POST /api/auth/login` | sign in |
-| `POST /api/auth/logout` | clear the session |
-| `GET /api/me` | current user, plan, limits, today's usage |
-| `POST /api/analyze` | multipart `photo` + filters → scene read + songs |
-| `POST /api/caption` | Pro — caption and hashtags for the read |
-| `GET /api/history` | last 20 reads for this account |
-| `POST /api/subscribe` | free plan instantly, or a Razorpay order |
-| `POST /api/verify-payment` | verifies the signature, then grants the plan |
-| `GET /api/health/config` | which keys are set |
+| `POST /api/auth/register` `/login` `/logout` | accounts |
+| `GET /api/me` | user, plan, limits, usage, which readers are live |
+| `POST /api/analyze` | multipart `photo` → scene read + songs |
+| `POST /api/caption` | Pro — caption and hashtags |
+| `GET /api/history` | last 20 reads |
+| `POST /api/subscribe` → `/api/verify-payment` | Razorpay order, then signature check |
+| `GET /api/health/config` `/api/health/razorpay` | diagnostics |
 
-## What I'd build next, in order
+## 10. Worth doing next
 
-1. **Playlist export** — Spotify OAuth (`playlist-modify-public`) so "Save as
-   playlist" creates a real playlist from the picks. Biggest user-visible win,
-   and the clearest reason to pay.
-2. **Carousel mode** — several photos in, one coherent soundtrack out.
-3. **Licence-cleared filter** for brand accounts, which can't use the same
-   catalogue personal accounts can. Studio-tier feature people will actually pay
-   for.
-4. **Postgres + a real session store** so deploys don't reset accounts.
-5. **Rate limiting** on `/api/analyze` by IP as well as by account — every
-   analysis costs you money at the Anthropic API.
+1. **Grow `data/songs.json`.** It ships with 80 songs across ten moods. Every
+   song you add makes the free reader better, and it costs nothing to run.
+2. **Playlist export** — Spotify OAuth so "Save as playlist" creates a real
+   playlist. The clearest reason for someone to pay you.
+3. **Rate-limit `/api/analyze` by IP**, not just by account, once you add a
+   paid reader.
+4. **Carousel mode** — several photos, one coherent soundtrack.

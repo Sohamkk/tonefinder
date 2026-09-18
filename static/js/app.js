@@ -3,7 +3,7 @@
   "use strict";
 
   var el = function (id) { return document.getElementById(id); };
-  var state = { user: null, file: null, blob: null, busy: false, last: null, mode: "login" };
+  var state = { user: null, file: null, blob: null, busy: false, last: null, mode: "login", nonce: 0 };
 
   /* ---------------- api helper ---------------- */
   async function api(path, opts) {
@@ -232,6 +232,7 @@
       return showStatus("That file type won't work. Use a JPEG, PNG or WebP.", true);
     }
     state.file = f;
+    state.nonce = 0;
     var url = URL.createObjectURL(f);
     var img = el("preview");
     img.onload = async function () {
@@ -275,6 +276,7 @@
     var fd = new FormData();
     fd.append("photo", state.blob, "photo.jpg");
     fd.append("count", el("count").value);
+    fd.append("nonce", String(state.nonce));
     if (isPro()) {
       fd.append("lang", el("lang").value);
       fd.append("era", el("era").value);
@@ -324,6 +326,7 @@
         moods.map(function (m) { return '<span class="tag">' + escapeHtml(m) + "</span>"; }).join("") +
       "</div>" +
       '<div class="meter" title="Energy ' + energy + ' of 100"><i style="width:' + energy + '%"></i></div>' +
+      (d.providerLabel ? '<p class="mismatch">Read by the ' + escapeHtml(d.providerLabel) + '.</p>' : "") +
       "</div><div id=\"capSlot\"></div><ul class=\"tracks\">";
 
     songs.forEach(function (s) {
@@ -355,7 +358,7 @@
       "</div>";
 
     el("results").innerHTML = html;
-    el("againBtn").addEventListener("click", run);
+    el("againBtn").addEventListener("click", function () { state.nonce += 1; run(); });
     var save = el("saveBtn");
     if (save) save.addEventListener("click", function () { downloadList(d); });
   }
@@ -415,7 +418,7 @@
     btn.disabled = false;
     btn.textContent = label;
 
-    if (!r.ok) { note(r.error); return; }
+    if (!r.ok) { note(r.error || "Checkout couldn't start."); return; }
     if (!r.paid) { state.user = r.user; paintAccount(); note("You're on the Free plan."); return; }
     if (typeof Razorpay === "undefined") { note("Razorpay's checkout script didn't load. Check your connection and reload."); return; }
 

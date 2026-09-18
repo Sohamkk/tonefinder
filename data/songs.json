@@ -1,0 +1,135 @@
+{
+  "_note": "Used by the no-key offline analyzer. Each song has an energy (0-100), a light preference (warm/cool/dark/bright/any) and mood tags. Spotify IDs are never stored here — they are looked up live so they are always correct.",
+  "buckets": {
+    "golden_hour": {
+      "label": "golden hour, warm light, soft mood",
+      "songs": [
+        {"title": "Ilahi", "artist": "Arijit Singh", "lang": "Hindi", "year": 2013, "energy": 62},
+        {"title": "Golden Hour", "artist": "JVKE", "lang": "English", "year": 2022, "energy": 45},
+        {"title": "Khaabon Ke Parinde", "artist": "Mohit Chauhan", "lang": "Hindi", "year": 2011, "energy": 48},
+        {"title": "Sunflower", "artist": "Post Malone", "lang": "English", "year": 2018, "energy": 58},
+        {"title": "Tera Ban Jaunga", "artist": "Akhil Sachdeva", "lang": "Hindi", "year": 2019, "energy": 40},
+        {"title": "Electric Feel", "artist": "MGMT", "lang": "English", "year": 2007, "energy": 60},
+        {"title": "Safarnama", "artist": "Lucky Ali", "lang": "Hindi", "year": 2015, "energy": 44},
+        {"title": "Vienna", "artist": "Billy Joel", "lang": "English", "year": 1977, "energy": 38}
+      ]
+    },
+    "night_city": {
+      "label": "night, city lights, neon, low light",
+      "songs": [
+        {"title": "Nightcall", "artist": "Kavinsky", "lang": "English", "year": 2010, "energy": 55},
+        {"title": "Kun Faya Kun", "artist": "A.R. Rahman", "lang": "Hindi", "year": 2011, "energy": 42},
+        {"title": "Midnight City", "artist": "M83", "lang": "English", "year": 2011, "energy": 72},
+        {"title": "Tum Se Hi", "artist": "Mohit Chauhan", "lang": "Hindi", "year": 2007, "energy": 35},
+        {"title": "After Hours", "artist": "The Weeknd", "lang": "English", "year": 2020, "energy": 50},
+        {"title": "Aaj Jaane Ki Zid Na Karo", "artist": "Farida Khanum", "lang": "Urdu", "year": 1973, "energy": 25},
+        {"title": "Instant Crush", "artist": "Daft Punk", "lang": "English", "year": 2013, "energy": 58},
+        {"title": "Raabta", "artist": "Arijit Singh", "lang": "Hindi", "year": 2012, "energy": 45}
+      ]
+    },
+    "monsoon": {
+      "label": "rain, grey sky, wet streets, cool and damp",
+      "songs": [
+        {"title": "Barso Re", "artist": "Shreya Ghoshal", "lang": "Hindi", "year": 2007, "energy": 74},
+        {"title": "Set Fire to the Rain", "artist": "Adele", "lang": "English", "year": 2011, "energy": 65},
+        {"title": "Iktara", "artist": "Kavita Seth", "lang": "Hindi", "year": 2010, "energy": 40},
+        {"title": "Riders on the Storm", "artist": "The Doors", "lang": "English", "year": 1971, "energy": 42},
+        {"title": "Tum Hi Ho", "artist": "Arijit Singh", "lang": "Hindi", "year": 2013, "energy": 38},
+        {"title": "November Rain", "artist": "Guns N' Roses", "lang": "English", "year": 1991, "energy": 55},
+        {"title": "Ae Dil Hai Mushkil", "artist": "Arijit Singh", "lang": "Hindi", "year": 2016, "energy": 50},
+        {"title": "Weather", "artist": "Novo Amor", "lang": "English", "year": 2018, "energy": 30}
+      ]
+    },
+    "nature_calm": {
+      "label": "green, trees, hills, open landscape, quiet",
+      "songs": [
+        {"title": "Phir Se Ud Chala", "artist": "Mohit Chauhan", "lang": "Hindi", "year": 2011, "energy": 55},
+        {"title": "Holocene", "artist": "Bon Iver", "lang": "English", "year": 2011, "energy": 28},
+        {"title": "Nadaan Parindey", "artist": "Mohit Chauhan", "lang": "Hindi", "year": 2011, "energy": 60},
+        {"title": "Rivers and Roads", "artist": "The Head and the Heart", "lang": "English", "year": 2011, "energy": 40},
+        {"title": "Jeev Rangla", "artist": "Ajay-Atul", "lang": "Marathi", "year": 2009, "energy": 45},
+        {"title": "First Day of My Life", "artist": "Bright Eyes", "lang": "English", "year": 2005, "energy": 32},
+        {"title": "Masakali", "artist": "Mohit Chauhan", "lang": "Hindi", "year": 2009, "energy": 66},
+        {"title": "The Night We Met", "artist": "Lord Huron", "lang": "English", "year": 2015, "energy": 26}
+      ]
+    },
+    "beach_summer": {
+      "label": "blue water, sand, bright sun, holiday",
+      "songs": [
+        {"title": "Sooraj Dooba Hain", "artist": "Arijit Singh", "lang": "Hindi", "year": 2015, "energy": 82},
+        {"title": "Island in the Sun", "artist": "Weezer", "lang": "English", "year": 2001, "energy": 55},
+        {"title": "Dil Dhadakne Do", "artist": "Priyanka Chopra", "lang": "Hindi", "year": 2011, "energy": 70},
+        {"title": "Feels Like Summer", "artist": "Childish Gambino", "lang": "English", "year": 2018, "energy": 45},
+        {"title": "Beach Baby", "artist": "Bon Iver", "lang": "English", "year": 2011, "energy": 25},
+        {"title": "Zinda", "artist": "Siddharth Mahadevan", "lang": "Hindi", "year": 2013, "energy": 85},
+        {"title": "Shape of You", "artist": "Ed Sheeran", "lang": "English", "year": 2017, "energy": 78},
+        {"title": "Paani Da Rang", "artist": "Ayushmann Khurrana", "lang": "Hindi", "year": 2012, "energy": 42}
+      ]
+    },
+    "party": {
+      "label": "crowds, bright colour, movement, night out",
+      "songs": [
+        {"title": "Kala Chashma", "artist": "Badshah", "lang": "Hindi", "year": 2016, "energy": 92},
+        {"title": "Levitating", "artist": "Dua Lipa", "lang": "English", "year": 2020, "energy": 88},
+        {"title": "Lungi Dance", "artist": "Yo Yo Honey Singh", "lang": "Hindi", "year": 2013, "energy": 90},
+        {"title": "Don't Start Now", "artist": "Dua Lipa", "lang": "English", "year": 2019, "energy": 86},
+        {"title": "Brown Munde", "artist": "AP Dhillon", "lang": "Punjabi", "year": 2020, "energy": 80},
+        {"title": "One Dance", "artist": "Drake", "lang": "English", "year": 2016, "energy": 75},
+        {"title": "Gallan Goodiyaan", "artist": "Shankar Mahadevan", "lang": "Hindi", "year": 2015, "energy": 88},
+        {"title": "Excuses", "artist": "AP Dhillon", "lang": "Punjabi", "year": 2020, "energy": 65}
+      ]
+    },
+    "romantic": {
+      "label": "close, soft, two people, warm tones",
+      "songs": [
+        {"title": "Pehla Nasha", "artist": "Udit Narayan", "lang": "Hindi", "year": 1992, "energy": 48},
+        {"title": "Lover", "artist": "Taylor Swift", "lang": "English", "year": 2019, "energy": 38},
+        {"title": "Jeene Laga Hoon", "artist": "Atif Aslam", "lang": "Hindi", "year": 2013, "energy": 50},
+        {"title": "Die With A Smile", "artist": "Lady Gaga", "lang": "English", "year": 2024, "energy": 45},
+        {"title": "Kabira", "artist": "Tochi Raina", "lang": "Hindi", "year": 2013, "energy": 44},
+        {"title": "Perfect", "artist": "Ed Sheeran", "lang": "English", "year": 2017, "energy": 40},
+        {"title": "Raataan Lambiyan", "artist": "Jubin Nautiyal", "lang": "Hindi", "year": 2021, "energy": 46},
+        {"title": "Apna Bana Le", "artist": "Arijit Singh", "lang": "Hindi", "year": 2022, "energy": 42}
+      ]
+    },
+    "melancholy": {
+      "label": "muted colour, grey, alone, still",
+      "songs": [
+        {"title": "Channa Mereya", "artist": "Arijit Singh", "lang": "Hindi", "year": 2016, "energy": 40},
+        {"title": "Skinny Love", "artist": "Bon Iver", "lang": "English", "year": 2007, "energy": 28},
+        {"title": "Agar Tum Saath Ho", "artist": "Alka Yagnik", "lang": "Hindi", "year": 2015, "energy": 35},
+        {"title": "Liability", "artist": "Lorde", "lang": "English", "year": 2017, "energy": 25},
+        {"title": "Phir Le Aya Dil", "artist": "Arijit Singh", "lang": "Hindi", "year": 2012, "energy": 30},
+        {"title": "Motion Sickness", "artist": "Phoebe Bridgers", "lang": "English", "year": 2017, "energy": 45},
+        {"title": "Tadap Tadap", "artist": "K.K.", "lang": "Hindi", "year": 1999, "energy": 55},
+        {"title": "Fix You", "artist": "Coldplay", "lang": "English", "year": 2005, "energy": 42}
+      ]
+    },
+    "travel": {
+      "label": "road, motion, wide open, going somewhere",
+      "songs": [
+        {"title": "Yun Hi Chala Chal", "artist": "Udit Narayan", "lang": "Hindi", "year": 2004, "energy": 62},
+        {"title": "Take Me Home, Country Roads", "artist": "John Denver", "lang": "English", "year": 1971, "energy": 55},
+        {"title": "Patakha Guddi", "artist": "Nooran Sisters", "lang": "Hindi", "year": 2014, "energy": 80},
+        {"title": "Go Your Own Way", "artist": "Fleetwood Mac", "lang": "English", "year": 1977, "energy": 70},
+        {"title": "Dil Chahta Hai", "artist": "Shankar Mahadevan", "lang": "Hindi", "year": 2001, "energy": 68},
+        {"title": "Ride", "artist": "Twenty One Pilots", "lang": "English", "year": 2015, "energy": 65},
+        {"title": "Zinda Hoon Yaar", "artist": "Arijit Singh", "lang": "Hindi", "year": 2014, "energy": 58},
+        {"title": "On the Road Again", "artist": "Willie Nelson", "lang": "English", "year": 1980, "energy": 60}
+      ]
+    },
+    "festive": {
+      "label": "lights, decoration, family, celebration, saturated colour",
+      "songs": [
+        {"title": "Deva Shree Ganesha", "artist": "Ajay-Atul", "lang": "Hindi", "year": 2012, "energy": 88},
+        {"title": "Nagada Sang Dhol", "artist": "Shreya Ghoshal", "lang": "Hindi", "year": 2013, "energy": 90},
+        {"title": "Ghungroo", "artist": "Arijit Singh", "lang": "Hindi", "year": 2019, "energy": 82},
+        {"title": "Zingaat", "artist": "Ajay-Atul", "lang": "Marathi", "year": 2016, "energy": 92},
+        {"title": "London Thumakda", "artist": "Labh Janjua", "lang": "Hindi", "year": 2014, "energy": 85},
+        {"title": "Morni Banke", "artist": "Guru Randhawa", "lang": "Punjabi", "year": 2018, "energy": 78},
+        {"title": "Celebration", "artist": "Kool & The Gang", "lang": "English", "year": 1980, "energy": 80},
+        {"title": "Aaj Ki Raat", "artist": "Sonu Nigam", "lang": "Hindi", "year": 2005, "energy": 76}
+      ]
+    }
+  }
+}
